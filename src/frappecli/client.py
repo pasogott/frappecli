@@ -1,5 +1,6 @@
 """Frappe API client."""
 
+import json
 from typing import Any
 from urllib.parse import urlencode, urljoin
 
@@ -66,6 +67,8 @@ class FrappeClient:
     def _build_url(self, path: str, params: dict[str, Any] | None = None) -> str:
         """Build full URL from path and parameters.
 
+        Frappe API expects certain parameters (like filters) as JSON strings.
+
         Args:
             path: API path (with or without leading slash)
             params: Query parameters (optional)
@@ -80,7 +83,16 @@ class FrappeClient:
         url = urljoin(self.base_url, path)
 
         if params:
-            query_string = urlencode(params)
+            # Convert dict/list params to JSON strings for Frappe API
+            encoded_params = {}
+            for key, value in params.items():
+                if isinstance(value, (dict, list)):
+                    # Serialize as JSON string
+                    encoded_params[key] = json.dumps(value)
+                else:
+                    encoded_params[key] = value
+
+            query_string = urlencode(encoded_params)
             url = f"{url}?{query_string}"
 
         return url
