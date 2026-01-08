@@ -54,13 +54,22 @@ def upload_file(
         with file_path.open("rb") as f:
             files = {"file": (file_path.name, f, "application/octet-stream")}
             
-            # Use raw session request for multipart upload
-            response = client.session.post(
-                f"{client.base_url}/api/method/upload_file",
-                files=files,
-                data=data,
-                timeout=60,  # Longer timeout for large files
-            )
+            # Remove Content-Type header for multipart upload
+            # requests will set it automatically with boundary
+            original_content_type = client.session.headers.pop("Content-Type", None)
+            
+            try:
+                # Use raw session request for multipart upload
+                response = client.session.post(
+                    f"{client.base_url}/api/method/upload_file",
+                    files=files,
+                    data=data,
+                    timeout=60,  # Longer timeout for large files
+                )
+            finally:
+                # Restore Content-Type header
+                if original_content_type:
+                    client.session.headers["Content-Type"] = original_content_type
 
         if response.ok:
             result = response.json().get("message", {})
