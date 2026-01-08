@@ -27,9 +27,7 @@ def get_client(ctx: click.Context) -> FrappeClient:
 
     config = Config(config_path) if config_path else Config()
     site_config = (
-        config.get_site_config(site_name)
-        if site_name
-        else config.get_default_site_config()
+        config.get_site_config(site_name) if site_name else config.get_default_site_config()
     )
 
     return FrappeClient(

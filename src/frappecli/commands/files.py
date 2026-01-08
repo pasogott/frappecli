@@ -7,7 +7,7 @@ import click
 from rich.progress import Progress
 from rich.table import Table
 
-from frappecli.helpers import console, get_client, output_json
+from frappecli.helpers import console, get_client
 
 
 @click.command(name="upload")

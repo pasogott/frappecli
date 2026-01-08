@@ -120,16 +120,10 @@ def _show_doctype_summary(result: dict) -> None:
     """Show doctype summary with key information."""
     console.print(f"\n[bold cyan]{result.get('name')}[/bold cyan]")
     console.print(f"[green]Module:[/green] {result.get('module', 'N/A')}")
-    console.print(
-        f"[green]Type:[/green] {'Custom' if result.get('custom') else 'Standard'}"
-    )
+    console.print(f"[green]Type:[/green] {'Custom' if result.get('custom') else 'Standard'}")
     console.print(f"[green]Single:[/green] {'Yes' if result.get('issingle') else 'No'}")
-    console.print(
-        f"[green]Submittable:[/green] {'Yes' if result.get('is_submittable') else 'No'}"
-    )
-    console.print(
-        f"[green]Track Changes:[/green] {'Yes' if result.get('track_changes') else 'No'}"
-    )
+    console.print(f"[green]Submittable:[/green] {'Yes' if result.get('is_submittable') else 'No'}")
+    console.print(f"[green]Track Changes:[/green] {'Yes' if result.get('track_changes') else 'No'}")
 
     # Analyze fields
     fields_data = result.get("fields", [])

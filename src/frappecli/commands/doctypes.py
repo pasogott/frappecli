@@ -95,9 +95,7 @@ def get_document(ctx: click.Context, doctype: str, name: str) -> None:
 @click.option("--data", required=True, help="Document data as JSON or @file.json")
 @click.option("--dry-run", is_flag=True, help="Show what would be created")
 @click.pass_context
-def create_document(
-    ctx: click.Context, doctype: str, data: str, dry_run: bool
-) -> None:
+def create_document(ctx: click.Context, doctype: str, data: str, dry_run: bool) -> None:
     """Create a new document."""
     client = get_client(ctx)
     output_json_flag = ctx.obj.get("output_json", False)
@@ -116,9 +114,7 @@ def create_document(
     if output_json_flag:
         output_json(result)
     else:
-        console.print(
-            f"[green]✓[/green] Created {doctype}: [bold]{result.get('name')}[/bold]"
-        )
+        console.print(f"[green]✓[/green] Created {doctype}: [bold]{result.get('name')}[/bold]")
 
 
 @doc_group.command(name="update")
@@ -127,9 +123,7 @@ def create_document(
 @click.option("--data", required=True, help="Update data as JSON or @file.json")
 @click.option("--dry-run", is_flag=True, help="Show what would be updated")
 @click.pass_context
-def update_document(
-    ctx: click.Context, doctype: str, name: str, data: str, dry_run: bool
-) -> None:
+def update_document(ctx: click.Context, doctype: str, name: str, data: str, dry_run: bool) -> None:
     """Update an existing document."""
     client = get_client(ctx)
     output_json_flag = ctx.obj.get("output_json", False)
