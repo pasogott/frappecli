@@ -4,31 +4,10 @@ import json
 from pathlib import Path
 
 import click
-from rich.console import Console
 from rich.progress import Progress
 from rich.table import Table
 
-from frappecli.client import FrappeClient
-from frappecli.config import Config
-
-console = Console()
-
-
-def _get_client(ctx: click.Context) -> FrappeClient:
-    """Get configured Frappe client from context."""
-    config_path = ctx.obj.get("config")
-    site_name = ctx.obj.get("site")
-
-    config = Config(config_path) if config_path else Config()
-    site_config = (
-        config.get_site_config(site_name) if site_name else config.get_default_site_config()
-    )
-
-    return FrappeClient(
-        base_url=site_config["url"],
-        api_key=site_config["api_key"],
-        api_secret=site_config["api_secret"],
-    )
+from frappecli.helpers import console, get_client, output_json
 
 
 @click.command(name="upload")
@@ -49,7 +28,7 @@ def upload_file(
     optimize: bool,
 ) -> None:
     """Upload a file to Frappe."""
-    client = _get_client(ctx)
+    client = get_client(ctx)
 
     # Prepare multipart data
     files = {"file": (file_path.name, file_path.open("rb"))}
@@ -95,7 +74,7 @@ def upload_file(
 @click.pass_context
 def download_file(ctx: click.Context, file_url: str, output: Path | None) -> None:
     """Download a file from Frappe."""
-    client = _get_client(ctx)
+    client = get_client(ctx)
 
     # Determine output path
     if output is None:
@@ -134,7 +113,7 @@ def list_files(
     attached_to: tuple[str, str] | None,
 ) -> None:
     """List files in a folder."""
-    client = _get_client(ctx)
+    client = get_client(ctx)
     output_json = ctx.obj.get("output_json", False)
 
     if attached_to:
@@ -150,7 +129,7 @@ def list_files(
         )
 
     if output_json:
-        click.echo(json.dumps(result, indent=2))
+        output_json(result)
     else:
         if not result:
             console.print("[yellow]No files found[/yellow]")
@@ -177,7 +156,7 @@ def list_files(
 @click.pass_context
 def search_files(ctx: click.Context, query: str) -> None:
     """Search for files by name."""
-    client = _get_client(ctx)
+    client = get_client(ctx)
     output_json = ctx.obj.get("output_json", False)
 
     result = client.post(
@@ -186,7 +165,7 @@ def search_files(ctx: click.Context, query: str) -> None:
     )
 
     if output_json:
-        click.echo(json.dumps(result, indent=2))
+        output_json(result)
     else:
         if not result:
             console.print("[yellow]No files found[/yellow]")
@@ -217,7 +196,7 @@ def bulk_upload(
     recursive: bool,
 ) -> None:
     """Bulk upload files matching pattern."""
-    client = _get_client(ctx)
+    client = get_client(ctx)
 
     # Find files
     files = list(Path().rglob(pattern)) if recursive else list(Path().glob(pattern))
