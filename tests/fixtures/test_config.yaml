@@ -1,0 +1,18 @@
+# Test configuration file
+sites:
+  production:
+    url: https://erp.example.com
+    api_key: prod_key_123
+    api_secret: prod_secret_456
+  
+  staging:
+    url: https://staging.example.com
+    api_key: ${FRAPPE_STAGING_KEY}
+    api_secret: ${FRAPPE_STAGING_SECRET}
+  
+  localhost:
+    url: http://localhost:8000
+    api_key: local_key
+    api_secret: local_secret
+
+default_site: production
