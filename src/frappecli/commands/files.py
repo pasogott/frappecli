@@ -21,9 +21,7 @@ def _get_client(ctx: click.Context) -> FrappeClient:
 
     config = Config(config_path) if config_path else Config()
     site_config = (
-        config.get_site_config(site_name)
-        if site_name
-        else config.get_default_site_config()
+        config.get_site_config(site_name) if site_name else config.get_default_site_config()
     )
 
     return FrappeClient(
@@ -95,9 +93,7 @@ def upload_file(
 @click.argument("file_url")
 @click.option("--output", "-o", type=click.Path(path_type=Path), help="Output file path")
 @click.pass_context
-def download_file(
-    ctx: click.Context, file_url: str, output: Path | None
-) -> None:
+def download_file(ctx: click.Context, file_url: str, output: Path | None) -> None:
     """Download a file from Frappe."""
     client = _get_client(ctx)
 
@@ -221,15 +217,10 @@ def bulk_upload(
     recursive: bool,
 ) -> None:
     """Bulk upload files matching pattern."""
-    from glob import glob
-
     client = _get_client(ctx)
 
     # Find files
-    if recursive:
-        files = list(Path().rglob(pattern))
-    else:
-        files = [Path(f) for f in glob(pattern)]
+    files = list(Path().rglob(pattern)) if recursive else list(Path().glob(pattern))
 
     if not files:
         console.print("[yellow]No files found matching pattern[/yellow]")
@@ -267,6 +258,4 @@ def bulk_upload(
 
             progress.update(task, advance=1)
 
-    console.print(
-        f"\n[bold]Summary:[/bold] {success} successful, {failed} failed"
-    )
+    console.print(f"\n[bold]Summary:[/bold] {success} successful, {failed} failed")

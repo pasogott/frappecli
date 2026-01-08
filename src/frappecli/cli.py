@@ -13,6 +13,12 @@ from frappecli.commands.doctypes import (
     list_documents,
     update_document,
 )
+from frappecli.commands.files import (
+    bulk_upload,
+    download_file,
+    files_group,
+    upload_file,
+)
 from frappecli.commands.site import doctype_info, doctypes
 
 console = Console()
@@ -72,6 +78,10 @@ cli.add_command(get_document)
 cli.add_command(create_document)
 cli.add_command(update_document)
 cli.add_command(delete_document)
+cli.add_command(upload_file)
+cli.add_command(download_file)
+cli.add_command(files_group)
+cli.add_command(bulk_upload)
 
 
 def main() -> None:
