@@ -6,6 +6,13 @@ from pathlib import Path
 import click
 from rich.console import Console
 
+from frappecli.commands.doctypes import (
+    create_document,
+    delete_document,
+    get_document,
+    list_documents,
+    update_document,
+)
 from frappecli.commands.site import doctype_info, doctypes
 
 console = Console()
@@ -60,6 +67,11 @@ def cli(
 # Register commands
 cli.add_command(doctypes)
 cli.add_command(doctype_info)
+cli.add_command(list_documents)
+cli.add_command(get_document)
+cli.add_command(create_document)
+cli.add_command(update_document)
+cli.add_command(delete_document)
 
 
 def main() -> None:

@@ -20,9 +20,7 @@ def _get_client(ctx: click.Context) -> FrappeClient:
 
     config = Config(config_path) if config_path else Config()
     site_config = (
-        config.get_site_config(site_name)
-        if site_name
-        else config.get_default_site_config()
+        config.get_site_config(site_name) if site_name else config.get_default_site_config()
     )
 
     return FrappeClient(
@@ -133,9 +131,7 @@ def get_document(ctx: click.Context, doctype: str, name: str) -> None:
 @click.option("--data", required=True, help="Document data as JSON or @file.json")
 @click.option("--dry-run", is_flag=True, help="Show what would be created")
 @click.pass_context
-def create_document(
-    ctx: click.Context, doctype: str, data: str, dry_run: bool
-) -> None:
+def create_document(ctx: click.Context, doctype: str, data: str, dry_run: bool) -> None:
     """Create a new document."""
     client = _get_client(ctx)
     output_json = ctx.obj.get("output_json", False)
@@ -154,9 +150,7 @@ def create_document(
     if output_json:
         click.echo(json.dumps(result, indent=2))
     else:
-        console.print(
-            f"[green]✓[/green] Created {doctype}: [bold]{result.get('name')}[/bold]"
-        )
+        console.print(f"[green]✓[/green] Created {doctype}: [bold]{result.get('name')}[/bold]")
 
 
 @click.command(name="update")
@@ -165,9 +159,7 @@ def create_document(
 @click.option("--data", required=True, help="Update data as JSON or @file.json")
 @click.option("--dry-run", is_flag=True, help="Show what would be updated")
 @click.pass_context
-def update_document(
-    ctx: click.Context, doctype: str, name: str, data: str, dry_run: bool
-) -> None:
+def update_document(ctx: click.Context, doctype: str, name: str, data: str, dry_run: bool) -> None:
     """Update an existing document."""
     client = _get_client(ctx)
     output_json = ctx.obj.get("output_json", False)
@@ -199,10 +191,9 @@ def delete_document(ctx: click.Context, doctype: str, name: str, yes: bool) -> N
     client = _get_client(ctx)
 
     # Confirm deletion
-    if not yes:
-        if not click.confirm(f"Delete {doctype} '{name}'?"):
-            console.print("[yellow]Cancelled[/yellow]")
-            return
+    if not yes and not click.confirm(f"Delete {doctype} '{name}'?"):
+        console.print("[yellow]Cancelled[/yellow]")
+        return
 
     # Delete document
     client.delete(f"/api/resource/{doctype}/{name}")
