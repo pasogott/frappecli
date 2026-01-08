@@ -48,75 +48,72 @@ sites:
 default_site: production
 ```
 
-### 2. List Available Doctypes ✅
+### 2. Site Management ✅
 
 ```bash
-frappecli doctypes
-frappecli doctypes --module "Core"
-frappecli doctypes --custom
-frappecli doctypes --json  # Output as JSON
+frappecli site doctypes                    # List all doctypes
+frappecli site doctypes --module "Core"    # Filter by module
+frappecli site doctypes --custom           # Only custom doctypes
+frappecli site info "User"                 # Get doctype details
+frappecli site info "User" --fields        # Detailed field list
+frappecli site status                      # Site status & version
+frappecli site status --detailed           # With installed apps
 ```
 
-### 3. Work with Documents *(Coming in Phase 2)*
+### 3. Document CRUD Operations ✅
 
 ```bash
-# List documents (TODO)
-frappecli list "User"
-frappecli list "ToDo" --filters '{"status": "Open"}' --limit 10
+# List documents
+frappecli doc list "User" --limit 10
+frappecli doc list "ToDo" --filters '{"status": "Open"}'
 
-# Get a document (TODO)
-frappecli get "User" "administrator@example.com"
+# Get a document
+frappecli doc get "User" "administrator@example.com"
 
-# Create a document (TODO)
-frappecli create "ToDo" --data '{"description": "Review PR", "status": "Open"}'
+# Create a document
+frappecli doc create "ToDo" --data '{"description": "Review PR"}'
+frappecli doc create "ToDo" --data @todo.json
 
-# Update a document (TODO)
-frappecli update "ToDo" "TODO-001" --data '{"status": "Closed"}'
+# Update a document
+frappecli doc update "ToDo" "TODO-001" --data '{"status": "Closed"}'
 
-# Delete a document (TODO)
-frappecli delete "ToDo" "TODO-001"
+# Delete a document
+frappecli doc delete "ToDo" "TODO-001"
+frappecli doc delete "ToDo" "TODO-001" --yes  # Skip confirmation
 ```
 
-### 4. File Management *(Coming in Phase 3)*
+### 4. File Management ✅
 
 ```bash
-# Upload file (private by default) (TODO)
+# Upload file (private by default)
 frappecli upload document.pdf
-
-# Upload and attach to a document (TODO)
 frappecli upload report.pdf --attach "Project" "PROJ-001"
-
-# Upload public file (TODO)
 frappecli upload logo.png --public --folder "Assets"
 
-# Download file (TODO)
+# Download file
 frappecli download /files/document.pdf -o local.pdf
 
-# List files (TODO)
+# List and search files
 frappecli files list --folder "Home"
 frappecli files search "invoice"
 
-# Bulk upload (TODO)
+# Bulk upload
 frappecli bulk-upload ./documents/*.pdf --folder "Reports"
 ```
 
-### 5. Execute Reports *(Coming in Phase 4)*
+### 5. Reports & RPC ✅
 
 ```bash
 # List available reports
 frappecli reports list
+frappecli reports list --module "Accounts"
 
 # Run a report
 frappecli report "System Report" --filters '{"from_date": "2026-01-01"}'
-```
+frappecli report "Sales Report" --output report.csv
 
-### 6. Call RPC Methods
-
-```bash
-# Call a custom method
+# Call custom RPC method
 frappecli call frappe.client.get_count --args '{"doctype": "User"}'
-
-# Call with JSON file
 frappecli call custom.method.name --args @params.json
 ```
 
