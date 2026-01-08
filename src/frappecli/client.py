@@ -149,21 +149,35 @@ class FrappeClient:
     def _parse_response(self, response: requests.Response) -> Any:
         """Parse response and extract data.
 
+        Frappe API wraps responses in different ways:
+        - {"message": ...} for RPC methods
+        - {"data": [...]} for resource lists
+        - Direct data for some endpoints
+
         Args:
             response: Response object
 
         Returns:
-            Parsed response data (usually from 'message' field)
+            Parsed response data (unwrapped)
         """
         try:
             data = response.json()
         except Exception:
             return response.text
 
-        # Frappe wraps responses in 'message' field
-        if isinstance(data, dict) and "message" in data:
+        # Not a dict - return as-is
+        if not isinstance(data, dict):
+            return data
+
+        # Priority 1: 'message' field (RPC methods, version info, etc.)
+        if "message" in data:
             return data["message"]
 
+        # Priority 2: 'data' field (resource lists)
+        if "data" in data:
+            return data["data"]
+
+        # No wrapper - return as-is
         return data
 
     def get(self, path: str, params: dict[str, Any] | None = None) -> Any:
