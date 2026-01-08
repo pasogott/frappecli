@@ -30,9 +30,7 @@ def upload_file(
     """Upload a file to Frappe."""
     client = get_client(ctx)
 
-    # Prepare multipart data
-    files = {"file": (file_path.name, file_path.open("rb"))}
-
+    # Prepare form data
     data = {
         "is_private": "0" if public else "1",
         "folder": folder,
@@ -51,21 +49,36 @@ def upload_file(
     # Upload
     console.print(f"[cyan]Uploading {file_path.name}...[/cyan]")
 
-    # Use raw session request for multipart upload
-    response = client.session.post(
-        f"{client.base_url}/api/method/upload_file",
-        files=files,
-        data=data,
-        timeout=client.timeout,
-    )
+    try:
+        # Open file and prepare multipart data
+        with file_path.open("rb") as f:
+            files = {"file": (file_path.name, f, "application/octet-stream")}
+            
+            # Use raw session request for multipart upload
+            response = client.session.post(
+                f"{client.base_url}/api/method/upload_file",
+                files=files,
+                data=data,
+                timeout=60,  # Longer timeout for large files
+            )
 
-    if response.ok:
-        result = response.json().get("message", {})
-        console.print(f"[green]✓[/green] Uploaded: [bold]{result.get('file_url')}[/bold]")
-        if attach:
-            console.print(f"[green]  Attached to {attach[0]}: {attach[1]}[/green]")
-    else:
-        console.print(f"[red]✗ Upload failed: {response.text}[/red]")
+        if response.ok:
+            result = response.json().get("message", {})
+            console.print(f"[green]✓[/green] Uploaded: [bold]{result.get('file_url')}[/bold]")
+            if attach:
+                console.print(f"[green]  Attached to {attach[0]}: {attach[1]}[/green]")
+        else:
+            # Try to parse error message
+            try:
+                error_data = response.json()
+                error_msg = error_data.get("exception", response.text)
+            except Exception:
+                error_msg = response.text
+            
+            console.print(f"[red]✗ Upload failed (HTTP {response.status_code}):[/red]")
+            console.print(f"[red]{error_msg}[/red]")
+    except Exception as e:
+        console.print(f"[red]✗ Upload error: {e}[/red]")
 
 
 @click.command(name="download")
