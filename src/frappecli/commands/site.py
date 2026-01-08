@@ -1,35 +1,17 @@
 """Site-related commands."""
 
-import json
-
 import click
-from rich.console import Console
 from rich.table import Table
 
-from frappecli.client import FrappeClient
-from frappecli.config import Config
-
-console = Console()
+from frappecli.helpers import console, get_client, output_json
 
 
-def _get_client(ctx: click.Context) -> FrappeClient:
-    """Get configured Frappe client from context."""
-    config_path = ctx.obj.get("config")
-    site_name = ctx.obj.get("site")
-
-    config = Config(config_path) if config_path else Config()
-    site_config = (
-        config.get_site_config(site_name) if site_name else config.get_default_site_config()
-    )
-
-    return FrappeClient(
-        base_url=site_config["url"],
-        api_key=site_config["api_key"],
-        api_secret=site_config["api_secret"],
-    )
+@click.group(name="site")
+def site_group() -> None:
+    """Site management commands."""
 
 
-@click.command()
+@site_group.command(name="doctypes")
 @click.option("--module", "-m", help="Filter by module")
 @click.option("--custom", is_flag=True, help="Show only custom doctypes")
 @click.option("--standard", is_flag=True, help="Show only standard doctypes")
@@ -41,8 +23,8 @@ def doctypes(
     standard: bool,
 ) -> None:
     """List all available doctypes."""
-    client = _get_client(ctx)
-    output_json = ctx.obj.get("output_json", False)
+    client = get_client(ctx)
+    output_json_flag = ctx.obj.get("output_json", False)
 
     # Fetch doctypes
     filters = {}
@@ -63,8 +45,8 @@ def doctypes(
         },
     )
 
-    if output_json:
-        click.echo(json.dumps(result, indent=2))
+    if output_json_flag:
+        output_json(result)
     else:
         # Display as table
         table = Table(title="Doctypes")
@@ -138,10 +120,16 @@ def _show_doctype_summary(result: dict) -> None:
     """Show doctype summary with key information."""
     console.print(f"\n[bold cyan]{result.get('name')}[/bold cyan]")
     console.print(f"[green]Module:[/green] {result.get('module', 'N/A')}")
-    console.print(f"[green]Type:[/green] {'Custom' if result.get('custom') else 'Standard'}")
+    console.print(
+        f"[green]Type:[/green] {'Custom' if result.get('custom') else 'Standard'}"
+    )
     console.print(f"[green]Single:[/green] {'Yes' if result.get('issingle') else 'No'}")
-    console.print(f"[green]Submittable:[/green] {'Yes' if result.get('is_submittable') else 'No'}")
-    console.print(f"[green]Track Changes:[/green] {'Yes' if result.get('track_changes') else 'No'}")
+    console.print(
+        f"[green]Submittable:[/green] {'Yes' if result.get('is_submittable') else 'No'}"
+    )
+    console.print(
+        f"[green]Track Changes:[/green] {'Yes' if result.get('track_changes') else 'No'}"
+    )
 
     # Analyze fields
     fields_data = result.get("fields", [])
@@ -186,7 +174,7 @@ def _show_doctype_summary(result: dict) -> None:
     console.print("\n[dim]💡 Use --fields flag for detailed field list[/dim]")
 
 
-@click.command()
+@site_group.command(name="info")
 @click.argument("doctype")
 @click.option("--fields", is_flag=True, help="Show detailed field list")
 @click.pass_context
@@ -199,15 +187,49 @@ def doctype_info(ctx: click.Context, doctype: str, fields: bool) -> None:
     - Links to other doctypes
     - Field type summary (with --fields flag)
     """
-    client = _get_client(ctx)
-    output_json = ctx.obj.get("output_json", False)
+    client = get_client(ctx)
+    output_json_flag = ctx.obj.get("output_json", False)
 
     # Get doctype metadata
     result = client.get(f"/api/resource/DocType/{doctype}")
 
-    if output_json:
-        click.echo(json.dumps(result, indent=2))
+    if output_json_flag:
+        output_json(result)
     elif fields:
         _show_field_details(result, doctype)
     else:
         _show_doctype_summary(result)
+
+
+@site_group.command(name="status")
+@click.option("--detailed", is_flag=True, help="Show detailed information")
+@click.pass_context
+def status(ctx: click.Context, detailed: bool) -> None:
+    """Show site status and version information."""
+    client = get_client(ctx)
+    output_json_flag = ctx.obj.get("output_json", False)
+
+    # Get version info
+    result = client.get("/api/method/version")
+
+    if output_json_flag:
+        output_json(result)
+    else:
+        console.print("\n[bold cyan]Site Status[/bold cyan]\n")
+
+        # Show Frappe version
+        if "message" in result:
+            console.print(
+                f"[green]Frappe Version:[/green] {result['message'].get('frappe_version', 'N/A')}"
+            )
+
+        # Show app versions
+        if detailed and "message" in result:
+            apps = result["message"].get("apps", [])
+            if apps:
+                console.print("\n[bold]Installed Apps:[/bold]")
+                for app in apps:
+                    console.print(f"  • {app}")
+
+        # Test connectivity
+        console.print(f"\n[green]✓[/green] Site is reachable at: {client.base_url}")
