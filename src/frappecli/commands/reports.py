@@ -92,12 +92,17 @@ def execute_report(
             if output.suffix == ".json":
                 json.dump(result, f, indent=2)
             elif output.suffix == ".csv":
-                # Simple CSV export
+                # CSV export - collect all unique fieldnames from all rows
                 if result and "result" in result:
                     data = result["result"]
                     if data:
-                        fieldnames = data[0].keys()
-                        writer = csv.DictWriter(f, fieldnames=fieldnames)
+                        # Collect all unique field names from all rows
+                        all_fieldnames = set()
+                        for row in data:
+                            all_fieldnames.update(row.keys())
+                        fieldnames = sorted(all_fieldnames)
+                        
+                        writer = csv.DictWriter(f, fieldnames=fieldnames, extrasaction='ignore')
                         writer.writeheader()
                         writer.writerows(data)
             else:
