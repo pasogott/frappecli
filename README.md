@@ -18,8 +18,24 @@ A Python CLI tool for managing Frappe instances via REST API.
 
 ## Installation
 
+### Homebrew (Recommended for macOS)
+
 ```bash
-# From source (currently only option)
+# Add the tap
+brew tap pasogott/tap
+
+# Install frappecli (HEAD = latest from main branch)
+brew install --HEAD pasogott/tap/frappecli
+```
+
+**Update to latest version:**
+```bash
+brew reinstall --HEAD pasogott/tap/frappecli
+```
+
+### From Source
+
+```bash
 git clone https://github.com/pasogott/frappecli.git
 cd frappecli
 uv sync
