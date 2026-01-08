@@ -6,6 +6,8 @@ from pathlib import Path
 import click
 from rich.console import Console
 
+from frappecli.commands.site import doctypes
+
 console = Console()
 
 
@@ -53,6 +55,10 @@ def cli(
     ctx.obj["config"] = config
     ctx.obj["output_json"] = output_json
     ctx.obj["verbose"] = verbose
+
+
+# Register commands
+cli.add_command(doctypes)
 
 
 def main() -> None:
