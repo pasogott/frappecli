@@ -19,6 +19,12 @@ from frappecli.commands.files import (
     files_group,
     upload_file,
 )
+from frappecli.commands.reports import (
+    call_rpc,
+    execute_report,
+    reports_group,
+    site_status,
+)
 from frappecli.commands.site import doctype_info, doctypes
 
 console = Console()
@@ -82,6 +88,10 @@ cli.add_command(upload_file)
 cli.add_command(download_file)
 cli.add_command(files_group)
 cli.add_command(bulk_upload)
+cli.add_command(reports_group)
+cli.add_command(execute_report)
+cli.add_command(call_rpc)
+cli.add_command(site_status)
 
 
 def main() -> None:
