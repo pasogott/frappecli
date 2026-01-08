@@ -1,5 +1,7 @@
 """Site-related commands."""
 
+import json
+
 import click
 from rich.console import Console
 from rich.table import Table
@@ -29,9 +31,7 @@ def doctypes(
     # Load config and get site
     config = Config(config_path) if config_path else Config()
     site_config = (
-        config.get_site_config(site_name)
-        if site_name
-        else config.get_default_site_config()
+        config.get_site_config(site_name) if site_name else config.get_default_site_config()
     )
 
     # Create client
@@ -61,8 +61,6 @@ def doctypes(
     )
 
     if output_json:
-        import json
-
         click.echo(json.dumps(result, indent=2))
     else:
         # Display as table

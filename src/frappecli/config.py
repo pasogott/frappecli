@@ -31,9 +31,7 @@ class Config:
         Raises:
             ConfigError: If configuration file not found or invalid.
         """
-        config_path = (
-            self._get_default_config_path() if config_path is None else Path(config_path)
-        )
+        config_path = self._get_default_config_path() if config_path is None else Path(config_path)
 
         self.config_path = config_path
         self.data = self._load_config()
