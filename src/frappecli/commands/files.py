@@ -150,7 +150,12 @@ def list_files(
             data={"folder": folder, "start": 0, "page_length": 100},
         )
 
-    def render_table(data: list[dict]) -> None:
+    def render_table(data: list[dict] | list[str] | dict) -> None:
+        # Handle different response formats
+        if isinstance(data, dict):
+            # Response might be wrapped in a dict
+            data = data.get("files", data.get("data", [data]))
+        
         if not data:
             console.print("[yellow]No files found[/yellow]")
             return
@@ -161,11 +166,16 @@ def list_files(
         table.add_column("Modified", style="yellow")
 
         for file in data:
-            table.add_row(
-                file.get("file_name", ""),
-                str(file.get("file_size", "")),
-                str(file.get("modified", "")),
-            )
+            # Handle both dict and string responses
+            if isinstance(file, dict):
+                table.add_row(
+                    file.get("file_name", file.get("name", "")),
+                    str(file.get("file_size", "")),
+                    str(file.get("modified", "")),
+                )
+            else:
+                # Simple string response
+                table.add_row(str(file), "", "")
 
         console.print(table)
         console.print(f"\n[bold]Total:[/bold] {len(data)} files")
