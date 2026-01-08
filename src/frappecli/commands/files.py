@@ -220,11 +220,27 @@ def bulk_upload(
     """Bulk upload files matching pattern."""
     client = get_client(ctx)
 
+    # Parse pattern - support both absolute and relative paths
+    pattern_path = Path(pattern)
+    
+    if pattern_path.is_absolute():
+        # Absolute path with glob pattern
+        base_dir = pattern_path.parent
+        pattern_name = pattern_path.name
+    else:
+        # Relative path
+        base_dir = Path.cwd()
+        pattern_name = pattern
+    
     # Find files
-    files = list(Path().rglob(pattern)) if recursive else list(Path().glob(pattern))
+    if recursive:
+        files = list(base_dir.rglob(pattern_name))
+    else:
+        files = list(base_dir.glob(pattern_name))
 
     if not files:
-        console.print("[yellow]No files found matching pattern[/yellow]")
+        console.print(f"[yellow]No files found matching pattern: {pattern}[/yellow]")
+        console.print(f"[dim]Searched in: {base_dir}[/dim]")
         return
 
     console.print(f"[cyan]Found {len(files)} files to upload[/cyan]")
@@ -232,31 +248,40 @@ def bulk_upload(
     success = 0
     failed = 0
 
-    with Progress() as progress:
-        task = progress.add_task("[cyan]Uploading...", total=len(files))
+    # Remove Content-Type header for multipart uploads
+    original_content_type = client.session.headers.pop("Content-Type", None)
 
-        for file_path in files:
-            try:
-                files_data = {"file": (file_path.name, file_path.open("rb"))}
-                data = {"is_private": "0" if public else "1", "folder": folder}
+    try:
+        with Progress() as progress:
+            task = progress.add_task("[cyan]Uploading...", total=len(files))
 
-                response = client.session.post(
-                    f"{client.base_url}/api/method/upload_file",
-                    files=files_data,
-                    data=data,
-                    timeout=client.timeout,
-                )
+            for file_path in files:
+                try:
+                    with file_path.open("rb") as f:
+                        files_data = {"file": (file_path.name, f, "application/octet-stream")}
+                        data = {"is_private": "0" if public else "1", "folder": folder}
 
-                if response.ok:
-                    success += 1
-                else:
+                        response = client.session.post(
+                            f"{client.base_url}/api/method/upload_file",
+                            files=files_data,
+                            data=data,
+                            timeout=60,
+                        )
+
+                    if response.ok:
+                        success += 1
+                    else:
+                        failed += 1
+                        console.print(f"[red]✗ Failed: {file_path.name} (HTTP {response.status_code})[/red]")
+
+                except Exception as e:
                     failed += 1
-                    console.print(f"[red]✗ Failed: {file_path.name}[/red]")
+                    console.print(f"[red]✗ Error uploading {file_path.name}: {e}[/red]")
 
-            except Exception as e:
-                failed += 1
-                console.print(f"[red]✗ Error uploading {file_path.name}: {e}[/red]")
-
-            progress.update(task, advance=1)
+                progress.update(task, advance=1)
+    finally:
+        # Restore Content-Type header
+        if original_content_type:
+            client.session.headers["Content-Type"] = original_content_type
 
     console.print(f"\n[bold]Summary:[/bold] {success} successful, {failed} failed")
