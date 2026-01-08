@@ -54,23 +54,29 @@ def list_documents(
     # Fetch documents
     result = client.get(f"/api/resource/{doctype}", params=params)
 
-    def render_table(data: list[dict]) -> None:
-        if not data:
+    def render_table(data: dict | list[dict]) -> None:
+        # Handle both dict with 'data' key and direct list
+        if isinstance(data, dict):
+            documents = data.get("data", [])
+        else:
+            documents = data
+
+        if not documents:
             console.print("[yellow]No documents found[/yellow]")
             return
 
         # Get field names from first document
-        field_names = list(data[0].keys())[:5]  # Show first 5 fields
+        field_names = list(documents[0].keys())[:5]  # Show first 5 fields
 
         table = Table(title=f"{doctype} Documents")
         for field in field_names:
             table.add_column(field, style="cyan")
 
-        for doc in data:
+        for doc in documents:
             table.add_row(*[str(doc.get(f, "")) for f in field_names])
 
         console.print(table)
-        console.print(f"\n[bold]Total:[/bold] {len(data)} documents")
+        console.print(f"\n[bold]Total:[/bold] {len(documents)} documents")
 
     output_data(result, output_format, render_table)
 
