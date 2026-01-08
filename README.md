@@ -2,18 +2,18 @@
 
 A Python CLI tool for managing Frappe instances via REST API.
 
-> **⚠️ Development Status:** This project is in early development (v0.1.0-alpha).  
-> Phase 1 (Foundation) is complete. Phase 2 (CRUD) is in progress.  
-> See [STATUS.md](STATUS.md) for current implementation status.
+> **✅ MVP Complete!** All core features implemented (Phases 1-4).  
+> Ready for production use. Only polish/release tasks remaining (Phase 5).  
+> See [FINAL_STATUS.md](FINAL_STATUS.md) for complete summary.
 
 ## Overview
 
 `frappecli` provides command-line access to Frappe Framework's REST API, enabling:
 
-- **CRUD Operations**: Create, read, update, delete documents across all doctypes *(Phase 2 - In Progress)*
-- **File Management**: Upload, download, and manage files *(Phase 3 - Planned)*
-- **Reports**: Execute and export Frappe reports *(Phase 4 - Planned)*
-- **RPC Methods**: Call custom server methods *(Phase 4 - Planned)*
+- **CRUD Operations**: Create, read, update, delete documents across all doctypes ✅
+- **File Management**: Upload, download, and manage files (private by default) ✅
+- **Reports**: Execute and export Frappe reports (JSON/CSV) ✅
+- **RPC Methods**: Call custom server methods ✅
 - **Multi-Site**: Manage multiple Frappe sites from one config ✅
 
 ## Installation
