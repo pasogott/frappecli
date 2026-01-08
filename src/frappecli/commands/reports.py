@@ -6,30 +6,9 @@ import time
 from pathlib import Path
 
 import click
-from rich.console import Console
 from rich.table import Table
 
-from frappecli.client import FrappeClient
-from frappecli.config import Config
-
-console = Console()
-
-
-def _get_client(ctx: click.Context) -> FrappeClient:
-    """Get configured Frappe client from context."""
-    config_path = ctx.obj.get("config")
-    site_name = ctx.obj.get("site")
-
-    config = Config(config_path) if config_path else Config()
-    site_config = (
-        config.get_site_config(site_name) if site_name else config.get_default_site_config()
-    )
-
-    return FrappeClient(
-        base_url=site_config["url"],
-        api_key=site_config["api_key"],
-        api_secret=site_config["api_secret"],
-    )
+from frappecli.helpers import console, get_client, load_data, output_json
 
 
 @click.group(name="reports")
@@ -42,8 +21,8 @@ def reports_group() -> None:
 @click.pass_context
 def list_reports(ctx: click.Context, module: str | None) -> None:
     """List all available reports."""
-    client = _get_client(ctx)
-    output_json = ctx.obj.get("output_json", False)
+    client = get_client(ctx)
+    output_json_flag = ctx.obj.get("output_json", False)
 
     # Fetch reports
     filters = {}
@@ -58,8 +37,8 @@ def list_reports(ctx: click.Context, module: str | None) -> None:
         },
     )
 
-    if output_json:
-        click.echo(json.dumps(result, indent=2))
+    if output_json_flag:
+        output_json(result)
     else:
         if not result:
             console.print("[yellow]No reports found[/yellow]")
@@ -93,8 +72,7 @@ def execute_report(
     output: Path | None,
 ) -> None:
     """Execute a report and show results."""
-    client = _get_client(ctx)
-    output_json = ctx.obj.get("output_json", False)
+    client = get_client(ctx)
 
     # Parse filters
     report_filters = json.loads(filters) if filters else {}
@@ -128,7 +106,7 @@ def execute_report(
 
     # Display results
     if output_json or not result:
-        click.echo(json.dumps(result, indent=2))
+        output_json(result)
     else:
         console.print(f"\n[bold cyan]{report_name}[/bold cyan]")
         console.print(f"[green]Execution time:[/green] {elapsed:.2f}s")
@@ -146,25 +124,19 @@ def execute_report(
 @click.pass_context
 def call_rpc(ctx: click.Context, method: str, args: str | None) -> None:
     """Call a custom RPC method."""
-    client = _get_client(ctx)
-    output_json = ctx.obj.get("output_json", False)
+    client = get_client(ctx)
+    output_json_flag = ctx.obj.get("output_json", False)
 
     # Parse arguments
     method_args = {}
     if args:
-        if args.startswith("@"):
-            # Load from file
-            file_path = Path(args[1:])
-            with file_path.open() as f:
-                method_args = json.load(f)
-        else:
-            method_args = json.loads(args)
+        method_args = load_data(args)
 
     # Call method
     result = client.post(f"/api/method/{method}", data=method_args)
 
-    if output_json:
-        click.echo(json.dumps(result, indent=2))
+    if output_json_flag:
+        output_json(result)
     else:
         console.print(f"\n[bold cyan]Result from {method}:[/bold cyan]\n")
         if result is None:
@@ -180,14 +152,14 @@ def call_rpc(ctx: click.Context, method: str, args: str | None) -> None:
 @click.pass_context
 def site_status(ctx: click.Context, detailed: bool) -> None:
     """Show site status and version information."""
-    client = _get_client(ctx)
-    output_json = ctx.obj.get("output_json", False)
+    client = get_client(ctx)
+    output_json_flag = ctx.obj.get("output_json", False)
 
     # Get version info
     result = client.get("/api/method/version")
 
-    if output_json:
-        click.echo(json.dumps(result, indent=2))
+    if output_json_flag:
+        output_json(result)
     else:
         console.print("\n[bold cyan]Site Status[/bold cyan]\n")
 

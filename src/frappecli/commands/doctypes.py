@@ -1,53 +1,17 @@
-"""Doctype CRUD commands."""
-
-import json
-from pathlib import Path
+"""Document CRUD commands."""
 
 import click
-from rich.console import Console
 from rich.table import Table
 
-from frappecli.client import FrappeClient
-from frappecli.config import Config
-
-console = Console()
+from frappecli.helpers import console, get_client, load_data, output_json
 
 
-def _get_client(ctx: click.Context) -> FrappeClient:
-    """Get configured Frappe client from context."""
-    config_path = ctx.obj.get("config")
-    site_name = ctx.obj.get("site")
-
-    config = Config(config_path) if config_path else Config()
-    site_config = (
-        config.get_site_config(site_name) if site_name else config.get_default_site_config()
-    )
-
-    return FrappeClient(
-        base_url=site_config["url"],
-        api_key=site_config["api_key"],
-        api_secret=site_config["api_secret"],
-    )
+@click.group(name="doc")
+def doc_group() -> None:
+    """Document CRUD operations."""
 
 
-def _load_data(data_str: str) -> dict:
-    """Load data from JSON string or file.
-
-    Args:
-        data_str: JSON string or @file.json
-
-    Returns:
-        Parsed data dictionary
-    """
-    if data_str.startswith("@"):
-        # Load from file
-        file_path = Path(data_str[1:])
-        with file_path.open() as f:
-            return json.load(f)
-    return json.loads(data_str)
-
-
-@click.command(name="list")
+@doc_group.command(name="list")
 @click.argument("doctype")
 @click.option("--filters", help="Filter as JSON")
 @click.option("--fields", help="Fields to return (comma-separated)")
@@ -65,14 +29,14 @@ def list_documents(
     order_by: str | None,
 ) -> None:
     """List documents of a doctype."""
-    client = _get_client(ctx)
-    output_json = ctx.obj.get("output_json", False)
+    client = get_client(ctx)
+    output_json_flag = ctx.obj.get("output_json", False)
 
     # Build query params
     params = {"limit_page_length": limit, "limit_start": offset}
 
     if filters:
-        params["filters"] = _load_data(filters)
+        params["filters"] = load_data(filters)
 
     if fields:
         params["fields"] = fields.split(",")
@@ -83,8 +47,8 @@ def list_documents(
     # Fetch documents
     result = client.get(f"/api/resource/{doctype}", params=params)
 
-    if output_json:
-        click.echo(json.dumps(result, indent=2))
+    if output_json_flag:
+        output_json(result)
     else:
         # Display as table
         if not result:
@@ -105,20 +69,20 @@ def list_documents(
         console.print(f"\n[bold]Total:[/bold] {len(result)} documents")
 
 
-@click.command(name="get")
+@doc_group.command(name="get")
 @click.argument("doctype")
 @click.argument("name")
 @click.pass_context
 def get_document(ctx: click.Context, doctype: str, name: str) -> None:
     """Get a single document."""
-    client = _get_client(ctx)
-    output_json = ctx.obj.get("output_json", False)
+    client = get_client(ctx)
+    output_json_flag = ctx.obj.get("output_json", False)
 
     # Get document
     result = client.get(f"/api/resource/{doctype}/{name}")
 
-    if output_json:
-        click.echo(json.dumps(result, indent=2))
+    if output_json_flag:
+        output_json(result)
     else:
         console.print(f"\n[bold cyan]{doctype}: {result.get('name')}[/bold cyan]\n")
         for key, value in result.items():
@@ -126,34 +90,34 @@ def get_document(ctx: click.Context, doctype: str, name: str) -> None:
                 console.print(f"[green]{key}:[/green] {value}")
 
 
-@click.command(name="create")
+@doc_group.command(name="create")
 @click.argument("doctype")
 @click.option("--data", required=True, help="Document data as JSON or @file.json")
 @click.option("--dry-run", is_flag=True, help="Show what would be created")
 @click.pass_context
 def create_document(ctx: click.Context, doctype: str, data: str, dry_run: bool) -> None:
     """Create a new document."""
-    client = _get_client(ctx)
-    output_json = ctx.obj.get("output_json", False)
+    client = get_client(ctx)
+    output_json_flag = ctx.obj.get("output_json", False)
 
     # Parse data
-    doc_data = _load_data(data)
+    doc_data = load_data(data)
 
     if dry_run:
         console.print("[yellow]DRY RUN - Would create:[/yellow]")
-        console.print(json.dumps(doc_data, indent=2))
+        output_json(doc_data)
         return
 
     # Create document
     result = client.post(f"/api/resource/{doctype}", data=doc_data)
 
-    if output_json:
-        click.echo(json.dumps(result, indent=2))
+    if output_json_flag:
+        output_json(result)
     else:
         console.print(f"[green]✓[/green] Created {doctype}: [bold]{result.get('name')}[/bold]")
 
 
-@click.command(name="update")
+@doc_group.command(name="update")
 @click.argument("doctype")
 @click.argument("name")
 @click.option("--data", required=True, help="Update data as JSON or @file.json")
@@ -161,34 +125,34 @@ def create_document(ctx: click.Context, doctype: str, data: str, dry_run: bool) 
 @click.pass_context
 def update_document(ctx: click.Context, doctype: str, name: str, data: str, dry_run: bool) -> None:
     """Update an existing document."""
-    client = _get_client(ctx)
-    output_json = ctx.obj.get("output_json", False)
+    client = get_client(ctx)
+    output_json_flag = ctx.obj.get("output_json", False)
 
     # Parse data
-    update_data = _load_data(data)
+    update_data = load_data(data)
 
     if dry_run:
         console.print(f"[yellow]DRY RUN - Would update {doctype} {name}:[/yellow]")
-        console.print(json.dumps(update_data, indent=2))
+        output_json(update_data)
         return
 
     # Update document
     result = client.put(f"/api/resource/{doctype}/{name}", data=update_data)
 
-    if output_json:
-        click.echo(json.dumps(result, indent=2))
+    if output_json_flag:
+        output_json(result)
     else:
         console.print(f"[green]✓[/green] Updated {doctype}: [bold]{name}[/bold]")
 
 
-@click.command(name="delete")
+@doc_group.command(name="delete")
 @click.argument("doctype")
 @click.argument("name")
 @click.option("--yes", is_flag=True, help="Skip confirmation")
 @click.pass_context
 def delete_document(ctx: click.Context, doctype: str, name: str, yes: bool) -> None:
     """Delete a document."""
-    client = _get_client(ctx)
+    client = get_client(ctx)
 
     # Confirm deletion
     if not yes and not click.confirm(f"Delete {doctype} '{name}'?"):

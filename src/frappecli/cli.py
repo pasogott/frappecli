@@ -6,26 +6,10 @@ from pathlib import Path
 import click
 from rich.console import Console
 
-from frappecli.commands.doctypes import (
-    create_document,
-    delete_document,
-    get_document,
-    list_documents,
-    update_document,
-)
-from frappecli.commands.files import (
-    bulk_upload,
-    download_file,
-    files_group,
-    upload_file,
-)
-from frappecli.commands.reports import (
-    call_rpc,
-    execute_report,
-    reports_group,
-    site_status,
-)
-from frappecli.commands.site import doctype_info, doctypes
+from frappecli.commands.doctypes import doc_group
+from frappecli.commands.files import bulk_upload, download_file, files_group, upload_file
+from frappecli.commands.reports import call_rpc, execute_report, reports_group
+from frappecli.commands.site import site_group
 
 console = Console()
 
@@ -67,6 +51,14 @@ def cli(
     """frappecli - Frappe REST API CLI tool.
 
     Manage Frappe instances via REST API from the command line.
+
+    Examples:
+      frappecli site doctypes
+      frappecli doc list "User" --limit 10
+      frappecli files upload document.pdf
+      frappecli reports list
+
+    Documentation: https://github.com/pasogott/frappecli
     """
     # Store global options in context for subcommands
     ctx.ensure_object(dict)
@@ -76,22 +68,18 @@ def cli(
     ctx.obj["verbose"] = verbose
 
 
-# Register commands
-cli.add_command(doctypes)
-cli.add_command(doctype_info)
-cli.add_command(list_documents)
-cli.add_command(get_document)
-cli.add_command(create_document)
-cli.add_command(update_document)
-cli.add_command(delete_document)
+# Register command groups
+cli.add_command(site_group)
+cli.add_command(doc_group)
+cli.add_command(files_group)
+cli.add_command(reports_group)
+
+# Register standalone commands
 cli.add_command(upload_file)
 cli.add_command(download_file)
-cli.add_command(files_group)
 cli.add_command(bulk_upload)
-cli.add_command(reports_group)
 cli.add_command(execute_report)
 cli.add_command(call_rpc)
-cli.add_command(site_status)
 
 
 def main() -> None:
