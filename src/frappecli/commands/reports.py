@@ -146,37 +146,3 @@ def call_rpc(ctx: click.Context, method: str, args: str | None) -> None:
             console.print(str(data))
 
     output_data(result, output_format, render_table)
-
-
-@click.command(name="status")
-@click.option("--detailed", is_flag=True, help="Show detailed information")
-@click.pass_context
-def site_status(ctx: click.Context, detailed: bool) -> None:
-    """Show site status and version information."""
-    client = get_client(ctx)
-    output_format = get_output_format(ctx)
-
-    # Get version info
-    result = client.get("/api/method/version")
-
-    def render_table(data: dict) -> None:
-        console.print("\n[bold cyan]Site Status[/bold cyan]\n")
-
-        # Show Frappe version
-        if "message" in data:
-            console.print(
-                f"[green]Frappe Version:[/green] {data['message'].get('frappe_version', 'N/A')}"
-            )
-
-        # Show app versions
-        if detailed and "message" in data:
-            apps = data["message"].get("apps", [])
-            if apps:
-                console.print("\n[bold]Installed Apps:[/bold]")
-                for app in apps:
-                    console.print(f"  • {app}")
-
-        # Test connectivity
-        console.print(f"\n[green]✓[/green] Site is reachable at: {client.base_url}")
-
-    output_data(result, output_format, render_table)

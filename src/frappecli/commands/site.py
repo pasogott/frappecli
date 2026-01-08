@@ -203,27 +203,33 @@ def status(ctx: click.Context, detailed: bool) -> None:
     client = get_client(ctx)
     output_format = get_output_format(ctx)
 
-    # Get version info
-    result = client.get("/api/method/version")
+    # Test connectivity by fetching doctypes count
+    try:
+        result = client.post(
+            "/api/method/frappe.client.get_list",
+            data={
+                "doctype": "DocType",
+                "fields": ["name"],
+                "limit_page_length": 1,
+            },
+        )
+        is_reachable = True
+        doctype_count = len(result) if result else 0
+    except Exception as e:
+        is_reachable = False
+        error_msg = str(e)
 
-    def render_table(data: dict) -> None:
+    def render_table(data: dict | list) -> None:
         console.print("\n[bold cyan]Site Status[/bold cyan]\n")
 
-        # Show Frappe version
-        if "message" in data:
-            console.print(
-                f"[green]Frappe Version:[/green] {data['message'].get('frappe_version', 'N/A')}"
-            )
+        if is_reachable:
+            console.print(f"[green]✓[/green] Site is reachable at: {client.base_url}")
+            console.print(f"[green]Status:[/green] Online")
+            
+            if detailed:
+                console.print("\n[dim]Note: Version info not available via API[/dim]")
+        else:
+            console.print(f"[red]✗[/red] Site unreachable: {client.base_url}")
+            console.print(f"[red]Error:[/red] {error_msg}")
 
-        # Show app versions
-        if detailed and "message" in data:
-            apps = data["message"].get("apps", [])
-            if apps:
-                console.print("\n[bold]Installed Apps:[/bold]")
-                for app in apps:
-                    console.print(f"  • {app}")
-
-        # Test connectivity
-        console.print(f"\n[green]✓[/green] Site is reachable at: {client.base_url}")
-
-    output_data(result, output_format, render_table)
+    output_data({"reachable": is_reachable}, output_format, render_table)
