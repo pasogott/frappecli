@@ -89,11 +89,17 @@ ignore = [
 [tool.ruff.lint.per-file-ignores]
 "tests/**/*.py" = [
     "S101",    # assert allowed in tests
+    "S105",    # hardcoded passwords ok in tests
+    "S106",    # hardcoded passwords ok in tests
     "ARG",     # unused arguments ok in tests (fixtures)
     "PLR2004", # magic values ok in tests
+    "A004",    # shadowing builtins ok in tests
 ]
 "src/frappecli/cli.py" = [
     "T201",    # print allowed in CLI
+]
+"src/frappecli/commands/site.py" = [
+    "A005",    # module name 'site' is intentional
 ]
 
 [tool.ruff.lint.isort]

@@ -86,7 +86,7 @@ class FrappeClient:
             # Convert dict/list params to JSON strings for Frappe API
             encoded_params = {}
             for key, value in params.items():
-                if isinstance(value, (dict, list)):
+                if isinstance(value, dict | list):
                     # Serialize as JSON string
                     encoded_params[key] = json.dumps(value)
                 else:

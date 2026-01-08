@@ -1,6 +1,5 @@
 """Tests for configuration management."""
 
-import os
 from pathlib import Path
 
 import pytest
@@ -56,7 +55,7 @@ class TestSiteConfiguration:
         """Test retrieving site configuration."""
         config = Config(test_config_path)
         site_config = config.get_site_config("production")
-        
+
         assert site_config is not None
         assert site_config["url"] == "https://erp.example.com"
         assert site_config["api_key"] == "prod_key_123"
@@ -72,7 +71,7 @@ class TestSiteConfiguration:
         """Test retrieving default site configuration."""
         config = Config(test_config_path)
         site_config = config.get_default_site_config()
-        
+
         assert site_config is not None
         assert site_config["url"] == "https://erp.example.com"
 
@@ -80,7 +79,7 @@ class TestSiteConfiguration:
         """Test listing all configured sites."""
         config = Config(test_config_path)
         sites = config.list_sites()
-        
+
         assert len(sites) == 3
         assert "production" in sites
         assert "staging" in sites
@@ -94,10 +93,10 @@ class TestEnvironmentVariableSubstitution:
         """Test environment variable substitution."""
         monkeypatch.setenv("FRAPPE_STAGING_KEY", "staging_key_from_env")
         monkeypatch.setenv("FRAPPE_STAGING_SECRET", "staging_secret_from_env")
-        
+
         config = Config(test_config_path)
         site_config = config.get_site_config("staging")
-        
+
         assert site_config["api_key"] == "staging_key_from_env"
         assert site_config["api_secret"] == "staging_secret_from_env"
 
@@ -105,7 +104,7 @@ class TestEnvironmentVariableSubstitution:
         """Test missing environment variable."""
         monkeypatch.delenv("FRAPPE_STAGING_KEY", raising=False)
         monkeypatch.delenv("FRAPPE_STAGING_SECRET", raising=False)
-        
+
         config = Config(test_config_path)
         with pytest.raises(ConfigError, match="Environment variable.*not set"):
             config.get_site_config("staging")

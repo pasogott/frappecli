@@ -7,7 +7,7 @@ import pytest
 import responses
 from requests.exceptions import ConnectionError, Timeout
 
-from frappecli.client import FrappeClient, FrappeAPIError, FrappeConnectionError
+from frappecli.client import FrappeAPIError, FrappeClient, FrappeConnectionError
 
 
 @pytest.fixture
@@ -96,9 +96,7 @@ class TestHTTPMethods:
             status=200,
         )
 
-        result = client.put(
-            "/api/resource/User/test@example.com", data={"enabled": 0}
-        )
+        result = client.put("/api/resource/User/test@example.com", data={"enabled": 0})
         assert result == api_responses["success_response"]["message"]
 
     @responses.activate
@@ -205,9 +203,7 @@ class TestErrorHandling:
     @responses.activate
     def test_timeout_error(self, client):
         """Test timeout error handling."""
-        responses.add(
-            responses.GET, "https://test.example.com/api/test", body=Timeout("Timeout")
-        )
+        responses.add(responses.GET, "https://test.example.com/api/test", body=Timeout("Timeout"))
 
         with pytest.raises(FrappeConnectionError, match="Request timed out"):
             client.get("/api/test")

@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.1] - 2026-01-08
+
+### Added
+- **Homebrew installation support** via `pasogott/tap`
+  - Stable release installation: `brew install pasogott/tap/frappecli`
+  - HEAD installation option: `brew install --HEAD pasogott/tap/frappecli`
+- Automatic Homebrew tap notification workflow on new releases
+- Auto-update workflow in homebrew-tap for new releases
+
+### Changed
+- Updated README with Homebrew installation instructions (recommended method for macOS)
+- Improved installation documentation with stable vs HEAD options
+
+### Fixed
+- GitHub Actions CI dependency installation
+
 ## [0.1.0] - 2026-01-08
 
 ### Added
@@ -98,5 +114,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [Repository](https://github.com/pasogott/frappecli)
 - [Issues](https://github.com/pasogott/frappecli/issues)
 - [Releases](https://github.com/pasogott/frappecli/releases)
+- [Homebrew Tap](https://github.com/pasogott/homebrew-tap)
 
+[0.1.1]: https://github.com/pasogott/frappecli/releases/tag/v0.1.1
 [0.1.0]: https://github.com/pasogott/frappecli/releases/tag/v0.1.0

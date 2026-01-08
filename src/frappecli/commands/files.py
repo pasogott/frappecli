@@ -53,11 +53,11 @@ def upload_file(
         # Open file and prepare multipart data
         with file_path.open("rb") as f:
             files = {"file": (file_path.name, f, "application/octet-stream")}
-            
+
             # Remove Content-Type header for multipart upload
             # requests will set it automatically with boundary
             original_content_type = client.session.headers.pop("Content-Type", None)
-            
+
             try:
                 # Use raw session request for multipart upload
                 response = client.session.post(
@@ -83,7 +83,7 @@ def upload_file(
                 error_msg = error_data.get("exception", response.text)
             except Exception:
                 error_msg = response.text
-            
+
             console.print(f"[red]✗ Upload failed (HTTP {response.status_code}):[/red]")
             console.print(f"[red]{error_msg}[/red]")
     except Exception as e:
@@ -155,7 +155,7 @@ def list_files(
         if isinstance(data, dict):
             # Response might be wrapped in a dict
             data = data.get("files", data.get("data", [data]))
-        
+
         if not data:
             console.print("[yellow]No files found[/yellow]")
             return
@@ -232,7 +232,7 @@ def bulk_upload(
 
     # Parse pattern - support both absolute and relative paths
     pattern_path = Path(pattern)
-    
+
     if pattern_path.is_absolute():
         # Absolute path with glob pattern
         base_dir = pattern_path.parent
@@ -241,12 +241,9 @@ def bulk_upload(
         # Relative path
         base_dir = Path.cwd()
         pattern_name = pattern
-    
+
     # Find files
-    if recursive:
-        files = list(base_dir.rglob(pattern_name))
-    else:
-        files = list(base_dir.glob(pattern_name))
+    files = list(base_dir.rglob(pattern_name)) if recursive else list(base_dir.glob(pattern_name))
 
     if not files:
         console.print(f"[yellow]No files found matching pattern: {pattern}[/yellow]")
@@ -282,7 +279,9 @@ def bulk_upload(
                         success += 1
                     else:
                         failed += 1
-                        console.print(f"[red]✗ Failed: {file_path.name} (HTTP {response.status_code})[/red]")
+                        console.print(
+                            f"[red]✗ Failed: {file_path.name} (HTTP {response.status_code})[/red]"
+                        )
 
                 except Exception as e:
                     failed += 1

@@ -205,7 +205,7 @@ def status(ctx: click.Context, detailed: bool) -> None:
 
     # Test connectivity by fetching doctypes count
     try:
-        result = client.post(
+        client.post(
             "/api/method/frappe.client.get_list",
             data={
                 "doctype": "DocType",
@@ -214,18 +214,18 @@ def status(ctx: click.Context, detailed: bool) -> None:
             },
         )
         is_reachable = True
-        doctype_count = len(result) if result else 0
     except Exception as e:
         is_reachable = False
         error_msg = str(e)
 
-    def render_table(data: dict | list) -> None:
+    def render_table(_data: dict | list) -> None:
+        """Render site status as table (data parameter unused but required by output_data)."""
         console.print("\n[bold cyan]Site Status[/bold cyan]\n")
 
         if is_reachable:
             console.print(f"[green]✓[/green] Site is reachable at: {client.base_url}")
-            console.print(f"[green]Status:[/green] Online")
-            
+            console.print("[green]Status:[/green] Online")
+
             if detailed:
                 console.print("\n[dim]Note: Version info not available via API[/dim]")
         else:

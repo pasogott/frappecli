@@ -101,8 +101,8 @@ def execute_report(
                         for row in data:
                             all_fieldnames.update(row.keys())
                         fieldnames = sorted(all_fieldnames)
-                        
-                        writer = csv.DictWriter(f, fieldnames=fieldnames, extrasaction='ignore')
+
+                        writer = csv.DictWriter(f, fieldnames=fieldnames, extrasaction="ignore")
                         writer.writeheader()
                         writer.writerows(data)
             else:
@@ -145,7 +145,7 @@ def call_rpc(ctx: click.Context, method: str, args: str | None) -> None:
         console.print(f"\n[bold cyan]Result from {method}:[/bold cyan]\n")
         if data is None:
             console.print("[yellow]No return value[/yellow]")
-        elif isinstance(data, (dict, list)):
+        elif isinstance(data, dict | list):
             console.print(json.dumps(data, indent=2))
         else:
             console.print(str(data))
