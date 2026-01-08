@@ -1,0 +1,102 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# uv
+.uv/
+uv.lock
+
+# Testing
+.pytest_cache/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+.tox/
+.nox/
+*.cover
+*.log
+
+# Type checking
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pyre/
+.pytype/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Pre-commit
+.pre-commit-config.yaml.bak
+
+# Jupyter
+.ipynb_checkpoints
+*.ipynb
+
+# Documentation builds
+docs/_build/
+docs/_static/
+docs/_templates/
+
+# Security
+*.pem
+*.key
+*.crt
+.secrets/
+
+# Config files with secrets (users should copy from .example)
+config.yaml
+!config.example.yaml
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+.cache/
+
+# Build artifacts
+*.whl
+*.tar.gz
+
+# CI/CD artifacts
+bandit-report.json
+ruff-report.json
+
+# OS
+Thumbs.db
+Desktop.ini

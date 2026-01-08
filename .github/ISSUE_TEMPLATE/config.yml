@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Question or Discussion
+    url: https://github.com/pasogott/frappecli/discussions
+    about: Ask questions or discuss ideas
+  - name: Frappe Framework Documentation
+    url: https://docs.frappe.io/framework
+    about: Official Frappe Framework documentation
+  - name: Frappe GitHub Repository
+    url: https://github.com/frappe/frappe
+    about: Official Frappe Framework repository

@@ -1,0 +1,95 @@
+# frappecli Configuration Example
+# Copy this file to ~/.config/frappecli/config.yaml and update with your settings
+
+# Sites configuration
+# Define multiple Frappe sites with their credentials
+sites:
+  # Production site
+  production:
+    url: https://erp.company.com
+    # Use environment variables for sensitive data
+    api_key: ${FRAPPE_PROD_API_KEY}
+    api_secret: ${FRAPPE_PROD_API_SECRET}
+
+  # Staging site
+  staging:
+    url: https://staging.company.com
+    api_key: ${FRAPPE_STAGING_API_KEY}
+    api_secret: ${FRAPPE_STAGING_API_SECRET}
+
+  # Local development (example with direct values - NOT RECOMMENDED for production)
+  local:
+    url: http://localhost:8000
+    api_key: your_api_key_here
+    api_secret: your_api_secret_here
+
+# Default site to use when --site flag is not specified
+default_site: production
+
+# Upload defaults
+upload:
+  # Default privacy setting (true = private, false = public)
+  # SECURITY: Keep this as true - files are private by default
+  default_private: true
+
+  # Default folder for uploads when not specified
+  default_folder: "Home"
+
+  # Automatically optimize images on upload
+  auto_optimize_images: false
+
+# Output preferences
+output:
+  # Default output format: "table" or "json"
+  format: "table"
+
+  # Table output settings
+  table:
+    max_width: 120
+    show_lines: true
+
+  # JSON output settings
+  json:
+    indent: 2
+    sort_keys: false
+
+# HTTP client settings
+http:
+  # Request timeout in seconds
+  timeout: 30
+
+  # Number of retries for failed requests
+  max_retries: 3
+
+  # Retry delay (exponential backoff)
+  retry_delay: 1.0
+
+  # Verify SSL certificates (set to false only for testing!)
+  verify_ssl: true
+
+# Logging (optional)
+logging:
+  # Log level: DEBUG, INFO, WARNING, ERROR, CRITICAL
+  level: INFO
+
+  # Log file path (optional, logs to console if not set)
+  # file: ~/.config/frappecli/frappecli.log
+
+# How to set environment variables:
+#
+# On Linux/macOS (add to ~/.bashrc or ~/.zshrc):
+#   export FRAPPE_PROD_API_KEY="your-api-key"
+#   export FRAPPE_PROD_API_SECRET="your-api-secret"
+#
+# On Windows (PowerShell):
+#   $env:FRAPPE_PROD_API_KEY="your-api-key"
+#   $env:FRAPPE_PROD_API_SECRET="your-api-secret"
+#
+# Or use a .env file with python-dotenv (future feature)
+
+# Generating API Keys in Frappe:
+# 1. Login to your Frappe site
+# 2. Go to User → Your User → API Access
+# 3. Click "Generate Keys"
+# 4. Copy the API Key and API Secret
+# 5. Store them securely in environment variables
