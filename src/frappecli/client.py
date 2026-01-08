@@ -1,8 +1,7 @@
 """Frappe API client."""
 
-import time
 from typing import Any
-from urllib.parse import urljoin, urlencode
+from urllib.parse import urlencode, urljoin
 
 import requests
 from requests.adapters import HTTPAdapter
@@ -28,9 +27,7 @@ class FrappeClient:
     Supports retry logic for transient failures.
     """
 
-    def __init__(
-        self, base_url: str, api_key: str, api_secret: str, timeout: int = 30
-    ) -> None:
+    def __init__(self, base_url: str, api_key: str, api_secret: str, timeout: int = 30) -> None:
         """Initialize Frappe API client.
 
         Args:
@@ -113,9 +110,7 @@ class FrappeClient:
         url = self._build_url(path, params)
 
         try:
-            response = self.session.request(
-                method=method, url=url, json=data, timeout=self.timeout
-            )
+            response = self.session.request(method=method, url=url, json=data, timeout=self.timeout)
         except requests.exceptions.ConnectionError as e:
             msg = f"Failed to connect to {self.base_url}: {e}"
             raise FrappeConnectionError(msg) from e
@@ -171,9 +166,7 @@ class FrappeClient:
 
         return data
 
-    def get(
-        self, path: str, params: dict[str, Any] | None = None
-    ) -> Any:
+    def get(self, path: str, params: dict[str, Any] | None = None) -> Any:
         """Make GET request.
 
         Args:
@@ -186,9 +179,7 @@ class FrappeClient:
         response = self._make_request("GET", path, params=params)
         return self._parse_response(response)
 
-    def post(
-        self, path: str, data: dict[str, Any] | None = None
-    ) -> Any:
+    def post(self, path: str, data: dict[str, Any] | None = None) -> Any:
         """Make POST request.
 
         Args:
@@ -201,9 +192,7 @@ class FrappeClient:
         response = self._make_request("POST", path, data=data)
         return self._parse_response(response)
 
-    def put(
-        self, path: str, data: dict[str, Any] | None = None
-    ) -> Any:
+    def put(self, path: str, data: dict[str, Any] | None = None) -> Any:
         """Make PUT request.
 
         Args:
