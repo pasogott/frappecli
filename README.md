@@ -24,12 +24,19 @@ A Python CLI tool for managing Frappe instances via REST API.
 # Add the tap
 brew tap pasogott/tap
 
-# Install frappecli (HEAD = latest from main branch)
+# Install stable release (recommended)
+brew install pasogott/tap/frappecli
+
+# Or install latest development version
 brew install --HEAD pasogott/tap/frappecli
 ```
 
 **Update to latest version:**
 ```bash
+# Stable: automatic updates with brew upgrade
+brew upgrade frappecli
+
+# HEAD: reinstall to get latest commit
 brew reinstall --HEAD pasogott/tap/frappecli
 ```
 
