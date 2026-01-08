@@ -1,6 +1,8 @@
 """Report and RPC commands."""
 
+import csv
 import json
+import time
 from pathlib import Path
 
 import click
@@ -20,9 +22,7 @@ def _get_client(ctx: click.Context) -> FrappeClient:
 
     config = Config(config_path) if config_path else Config()
     site_config = (
-        config.get_site_config(site_name)
-        if site_name
-        else config.get_default_site_config()
+        config.get_site_config(site_name) if site_name else config.get_default_site_config()
     )
 
     return FrappeClient(
@@ -52,7 +52,10 @@ def list_reports(ctx: click.Context, module: str | None) -> None:
 
     result = client.get(
         "/api/resource/Report",
-        params={"fields": json.dumps(["name", "module", "report_type"]), "filters": json.dumps(filters)},
+        params={
+            "fields": json.dumps(["name", "module", "report_type"]),
+            "filters": json.dumps(filters),
+        },
     )
 
     if output_json:
@@ -90,8 +93,6 @@ def execute_report(
     output: Path | None,
 ) -> None:
     """Execute a report and show results."""
-    import time
-
     client = _get_client(ctx)
     output_json = ctx.obj.get("output_json", False)
 
@@ -114,8 +115,6 @@ def execute_report(
             elif output.suffix == ".csv":
                 # Simple CSV export
                 if result and "result" in result:
-                    import csv
-
                     data = result["result"]
                     if data:
                         fieldnames = data[0].keys()
@@ -135,7 +134,7 @@ def execute_report(
         console.print(f"[green]Execution time:[/green] {elapsed:.2f}s")
 
         # Show data summary
-        if "result" in result and result["result"]:
+        if result.get("result"):
             console.print(f"[green]Rows:[/green] {len(result['result'])}")
         else:
             console.print("[yellow]No data returned[/yellow]")
