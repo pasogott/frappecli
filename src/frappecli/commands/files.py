@@ -7,7 +7,7 @@ import click
 from rich.progress import Progress
 from rich.table import Table
 
-from frappecli.helpers import console, get_client
+from frappecli.helpers import console, get_client, get_output_format, output_data
 
 
 @click.command(name="upload")
@@ -114,7 +114,7 @@ def list_files(
 ) -> None:
     """List files in a folder."""
     client = get_client(ctx)
-    output_json = ctx.obj.get("output_json", False)
+    output_format = get_output_format(ctx)
 
     if attached_to:
         # List files attached to a document
@@ -128,10 +128,8 @@ def list_files(
             data={"folder": folder, "start": 0, "page_length": 100},
         )
 
-    if output_json:
-        output_json(result)
-    else:
-        if not result:
+    def render_table(data: list[dict]) -> None:
+        if not data:
             console.print("[yellow]No files found[/yellow]")
             return
 
@@ -140,7 +138,7 @@ def list_files(
         table.add_column("Size", style="green")
         table.add_column("Modified", style="yellow")
 
-        for file in result:
+        for file in data:
             table.add_row(
                 file.get("file_name", ""),
                 str(file.get("file_size", "")),
@@ -148,7 +146,9 @@ def list_files(
             )
 
         console.print(table)
-        console.print(f"\n[bold]Total:[/bold] {len(result)} files")
+        console.print(f"\n[bold]Total:[/bold] {len(data)} files")
+
+    output_data(result, output_format, render_table)
 
 
 @files_group.command(name="search")
@@ -157,17 +157,15 @@ def list_files(
 def search_files(ctx: click.Context, query: str) -> None:
     """Search for files by name."""
     client = get_client(ctx)
-    output_json = ctx.obj.get("output_json", False)
+    output_format = get_output_format(ctx)
 
     result = client.post(
         "/api/method/frappe.core.api.file.get_files_by_search_text",
         data={"text": query},
     )
 
-    if output_json:
-        output_json(result)
-    else:
-        if not result:
+    def render_table(data: list[dict]) -> None:
+        if not data:
             console.print("[yellow]No files found[/yellow]")
             return
 
@@ -175,11 +173,13 @@ def search_files(ctx: click.Context, query: str) -> None:
         table.add_column("Name", style="cyan")
         table.add_column("URL", style="green")
 
-        for file in result:
+        for file in data:
             table.add_row(file.get("name", ""), file.get("file_url", ""))
 
         console.print(table)
-        console.print(f"\n[bold]Total:[/bold] {len(result)} files")
+        console.print(f"\n[bold]Total:[/bold] {len(data)} files")
+
+    output_data(result, output_format, render_table)
 
 
 @click.command(name="bulk-upload")

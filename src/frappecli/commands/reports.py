@@ -8,7 +8,7 @@ from pathlib import Path
 import click
 from rich.table import Table
 
-from frappecli.helpers import console, get_client, load_data, output_json
+from frappecli.helpers import console, get_client, get_output_format, load_data, output_data
 
 
 @click.group(name="reports")
@@ -22,7 +22,7 @@ def reports_group() -> None:
 def list_reports(ctx: click.Context, module: str | None) -> None:
     """List all available reports."""
     client = get_client(ctx)
-    output_json_flag = ctx.obj.get("output_json", False)
+    output_format = get_output_format(ctx)
 
     # Fetch reports
     filters = {}
@@ -37,10 +37,8 @@ def list_reports(ctx: click.Context, module: str | None) -> None:
         },
     )
 
-    if output_json_flag:
-        output_json(result)
-    else:
-        if not result:
+    def render_table(data: list[dict]) -> None:
+        if not data:
             console.print("[yellow]No reports found[/yellow]")
             return
 
@@ -49,7 +47,7 @@ def list_reports(ctx: click.Context, module: str | None) -> None:
         table.add_column("Module", style="green")
         table.add_column("Type", style="yellow")
 
-        for report in result:
+        for report in data:
             table.add_row(
                 report.get("name", ""),
                 report.get("module", ""),
@@ -57,7 +55,9 @@ def list_reports(ctx: click.Context, module: str | None) -> None:
             )
 
         console.print(table)
-        console.print(f"\n[bold]Total:[/bold] {len(result)} reports")
+        console.print(f"\n[bold]Total:[/bold] {len(data)} reports")
+
+    output_data(result, output_format, render_table)
 
 
 @click.command(name="report")
@@ -73,6 +73,7 @@ def execute_report(
 ) -> None:
     """Execute a report and show results."""
     client = get_client(ctx)
+    output_format = get_output_format(ctx)
 
     # Parse filters
     report_filters = json.loads(filters) if filters else {}
@@ -105,17 +106,17 @@ def execute_report(
         console.print(f"[green]✓[/green] Saved to: [bold]{output}[/bold]")
 
     # Display results
-    if output_json or not result:
-        output_json(result)
-    else:
+    def render_table(data: dict) -> None:
         console.print(f"\n[bold cyan]{report_name}[/bold cyan]")
         console.print(f"[green]Execution time:[/green] {elapsed:.2f}s")
 
         # Show data summary
-        if result.get("result"):
-            console.print(f"[green]Rows:[/green] {len(result['result'])}")
+        if data.get("result"):
+            console.print(f"[green]Rows:[/green] {len(data['result'])}")
         else:
             console.print("[yellow]No data returned[/yellow]")
+
+    output_data(result, output_format, render_table)
 
 
 @click.command(name="call")
@@ -125,7 +126,7 @@ def execute_report(
 def call_rpc(ctx: click.Context, method: str, args: str | None) -> None:
     """Call a custom RPC method."""
     client = get_client(ctx)
-    output_json_flag = ctx.obj.get("output_json", False)
+    output_format = get_output_format(ctx)
 
     # Parse arguments
     method_args = {}
@@ -135,16 +136,16 @@ def call_rpc(ctx: click.Context, method: str, args: str | None) -> None:
     # Call method
     result = client.post(f"/api/method/{method}", data=method_args)
 
-    if output_json_flag:
-        output_json(result)
-    else:
+    def render_table(data: any) -> None:
         console.print(f"\n[bold cyan]Result from {method}:[/bold cyan]\n")
-        if result is None:
+        if data is None:
             console.print("[yellow]No return value[/yellow]")
-        elif isinstance(result, (dict, list)):
-            console.print(json.dumps(result, indent=2))
+        elif isinstance(data, (dict, list)):
+            console.print(json.dumps(data, indent=2))
         else:
-            console.print(str(result))
+            console.print(str(data))
+
+    output_data(result, output_format, render_table)
 
 
 @click.command(name="status")
@@ -153,25 +154,23 @@ def call_rpc(ctx: click.Context, method: str, args: str | None) -> None:
 def site_status(ctx: click.Context, detailed: bool) -> None:
     """Show site status and version information."""
     client = get_client(ctx)
-    output_json_flag = ctx.obj.get("output_json", False)
+    output_format = get_output_format(ctx)
 
     # Get version info
     result = client.get("/api/method/version")
 
-    if output_json_flag:
-        output_json(result)
-    else:
+    def render_table(data: dict) -> None:
         console.print("\n[bold cyan]Site Status[/bold cyan]\n")
 
         # Show Frappe version
-        if "message" in result:
+        if "message" in data:
             console.print(
-                f"[green]Frappe Version:[/green] {result['message'].get('frappe_version', 'N/A')}"
+                f"[green]Frappe Version:[/green] {data['message'].get('frappe_version', 'N/A')}"
             )
 
         # Show app versions
-        if detailed and "message" in result:
-            apps = result["message"].get("apps", [])
+        if detailed and "message" in data:
+            apps = data["message"].get("apps", [])
             if apps:
                 console.print("\n[bold]Installed Apps:[/bold]")
                 for app in apps:
@@ -179,3 +178,5 @@ def site_status(ctx: click.Context, detailed: bool) -> None:
 
         # Test connectivity
         console.print(f"\n[green]✓[/green] Site is reachable at: {client.base_url}")
+
+    output_data(result, output_format, render_table)

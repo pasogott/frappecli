@@ -3,7 +3,14 @@
 import click
 from rich.table import Table
 
-from frappecli.helpers import console, get_client, load_data, output_json
+from frappecli.helpers import (
+    console,
+    get_client,
+    get_output_format,
+    load_data,
+    output_as_json,
+    output_data,
+)
 
 
 @click.group(name="doc")
@@ -30,7 +37,7 @@ def list_documents(
 ) -> None:
     """List documents of a doctype."""
     client = get_client(ctx)
-    output_json_flag = ctx.obj.get("output_json", False)
+    output_format = get_output_format(ctx)
 
     # Build query params
     params = {"limit_page_length": limit, "limit_start": offset}
@@ -47,26 +54,25 @@ def list_documents(
     # Fetch documents
     result = client.get(f"/api/resource/{doctype}", params=params)
 
-    if output_json_flag:
-        output_json(result)
-    else:
-        # Display as table
-        if not result:
+    def render_table(data: list[dict]) -> None:
+        if not data:
             console.print("[yellow]No documents found[/yellow]")
             return
 
         # Get field names from first document
-        field_names = list(result[0].keys())[:5]  # Show first 5 fields
+        field_names = list(data[0].keys())[:5]  # Show first 5 fields
 
         table = Table(title=f"{doctype} Documents")
         for field in field_names:
             table.add_column(field, style="cyan")
 
-        for doc in result:
+        for doc in data:
             table.add_row(*[str(doc.get(f, "")) for f in field_names])
 
         console.print(table)
-        console.print(f"\n[bold]Total:[/bold] {len(result)} documents")
+        console.print(f"\n[bold]Total:[/bold] {len(data)} documents")
+
+    output_data(result, output_format, render_table)
 
 
 @doc_group.command(name="get")
@@ -76,18 +82,18 @@ def list_documents(
 def get_document(ctx: click.Context, doctype: str, name: str) -> None:
     """Get a single document."""
     client = get_client(ctx)
-    output_json_flag = ctx.obj.get("output_json", False)
+    output_format = get_output_format(ctx)
 
     # Get document
     result = client.get(f"/api/resource/{doctype}/{name}")
 
-    if output_json_flag:
-        output_json(result)
-    else:
-        console.print(f"\n[bold cyan]{doctype}: {result.get('name')}[/bold cyan]\n")
-        for key, value in result.items():
+    def render_table(data: dict) -> None:
+        console.print(f"\n[bold cyan]{doctype}: {data.get('name')}[/bold cyan]\n")
+        for key, value in data.items():
             if not key.startswith("_") and value:
                 console.print(f"[green]{key}:[/green] {value}")
+
+    output_data(result, output_format, render_table)
 
 
 @doc_group.command(name="create")
@@ -98,23 +104,23 @@ def get_document(ctx: click.Context, doctype: str, name: str) -> None:
 def create_document(ctx: click.Context, doctype: str, data: str, dry_run: bool) -> None:
     """Create a new document."""
     client = get_client(ctx)
-    output_json_flag = ctx.obj.get("output_json", False)
+    output_format = get_output_format(ctx)
 
     # Parse data
     doc_data = load_data(data)
 
     if dry_run:
         console.print("[yellow]DRY RUN - Would create:[/yellow]")
-        output_json(doc_data)
+        output_as_json(doc_data)
         return
 
     # Create document
     result = client.post(f"/api/resource/{doctype}", data=doc_data)
 
-    if output_json_flag:
-        output_json(result)
-    else:
-        console.print(f"[green]✓[/green] Created {doctype}: [bold]{result.get('name')}[/bold]")
+    def render_table(data: dict) -> None:
+        console.print(f"[green]✓[/green] Created {doctype}: [bold]{data.get('name')}[/bold]")
+
+    output_data(result, output_format, render_table)
 
 
 @doc_group.command(name="update")
@@ -126,23 +132,23 @@ def create_document(ctx: click.Context, doctype: str, data: str, dry_run: bool) 
 def update_document(ctx: click.Context, doctype: str, name: str, data: str, dry_run: bool) -> None:
     """Update an existing document."""
     client = get_client(ctx)
-    output_json_flag = ctx.obj.get("output_json", False)
+    output_format = get_output_format(ctx)
 
     # Parse data
     update_data = load_data(data)
 
     if dry_run:
         console.print(f"[yellow]DRY RUN - Would update {doctype} {name}:[/yellow]")
-        output_json(update_data)
+        output_as_json(update_data)
         return
 
     # Update document
     result = client.put(f"/api/resource/{doctype}/{name}", data=update_data)
 
-    if output_json_flag:
-        output_json(result)
-    else:
+    def render_table(_: dict) -> None:
         console.print(f"[green]✓[/green] Updated {doctype}: [bold]{name}[/bold]")
+
+    output_data(result, output_format, render_table)
 
 
 @doc_group.command(name="delete")

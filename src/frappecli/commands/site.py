@@ -3,7 +3,7 @@
 import click
 from rich.table import Table
 
-from frappecli.helpers import console, get_client, output_json
+from frappecli.helpers import console, get_client, get_output_format, output_data
 
 
 @click.group(name="site")
@@ -24,7 +24,7 @@ def doctypes(
 ) -> None:
     """List all available doctypes."""
     client = get_client(ctx)
-    output_json_flag = ctx.obj.get("output_json", False)
+    output_format = get_output_format(ctx)
 
     # Fetch doctypes
     filters = {}
@@ -45,23 +45,22 @@ def doctypes(
         },
     )
 
-    if output_json_flag:
-        output_json(result)
-    else:
-        # Display as table
+    def render_table(data: list[dict]) -> None:
         table = Table(title="Doctypes")
         table.add_column("Name", style="cyan")
         table.add_column("Module", style="green")
         table.add_column("Type", style="yellow")
         table.add_column("Single", style="magenta")
 
-        for dt in result:
+        for dt in data:
             dt_type = "Custom" if dt.get("custom") else "Standard"
             is_single = "Yes" if dt.get("issingle") else "No"
             table.add_row(dt["name"], dt.get("module", ""), dt_type, is_single)
 
         console.print(table)
-        console.print(f"\n[bold]Total:[/bold] {len(result)} doctypes")
+        console.print(f"\n[bold]Total:[/bold] {len(data)} doctypes")
+
+    output_data(result, output_format, render_table)
 
 
 def _show_field_details(result: dict, doctype: str) -> None:
@@ -182,17 +181,18 @@ def doctype_info(ctx: click.Context, doctype: str, fields: bool) -> None:
     - Field type summary (with --fields flag)
     """
     client = get_client(ctx)
-    output_json_flag = ctx.obj.get("output_json", False)
+    output_format = get_output_format(ctx)
 
     # Get doctype metadata
     result = client.get(f"/api/resource/DocType/{doctype}")
 
-    if output_json_flag:
-        output_json(result)
-    elif fields:
-        _show_field_details(result, doctype)
-    else:
-        _show_doctype_summary(result)
+    def render_table(data: dict) -> None:
+        if fields:
+            _show_field_details(data, doctype)
+        else:
+            _show_doctype_summary(data)
+
+    output_data(result, output_format, render_table)
 
 
 @site_group.command(name="status")
@@ -201,25 +201,23 @@ def doctype_info(ctx: click.Context, doctype: str, fields: bool) -> None:
 def status(ctx: click.Context, detailed: bool) -> None:
     """Show site status and version information."""
     client = get_client(ctx)
-    output_json_flag = ctx.obj.get("output_json", False)
+    output_format = get_output_format(ctx)
 
     # Get version info
     result = client.get("/api/method/version")
 
-    if output_json_flag:
-        output_json(result)
-    else:
+    def render_table(data: dict) -> None:
         console.print("\n[bold cyan]Site Status[/bold cyan]\n")
 
         # Show Frappe version
-        if "message" in result:
+        if "message" in data:
             console.print(
-                f"[green]Frappe Version:[/green] {result['message'].get('frappe_version', 'N/A')}"
+                f"[green]Frappe Version:[/green] {data['message'].get('frappe_version', 'N/A')}"
             )
 
         # Show app versions
-        if detailed and "message" in result:
-            apps = result["message"].get("apps", [])
+        if detailed and "message" in data:
+            apps = data["message"].get("apps", [])
             if apps:
                 console.print("\n[bold]Installed Apps:[/bold]")
                 for app in apps:
@@ -227,3 +225,5 @@ def status(ctx: click.Context, detailed: bool) -> None:
 
         # Test connectivity
         console.print(f"\n[green]✓[/green] Site is reachable at: {client.base_url}")
+
+    output_data(result, output_format, render_table)
