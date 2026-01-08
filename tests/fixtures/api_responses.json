@@ -1,0 +1,27 @@
+{
+  "success_response": {
+    "message": {
+      "name": "TEST-001",
+      "status": "Active"
+    }
+  },
+  "list_response": {
+    "message": [
+      {"name": "Item 1"},
+      {"name": "Item 2"},
+      {"name": "Item 3"}
+    ]
+  },
+  "error_404": {
+    "exc_type": "DoesNotExistError",
+    "message": "Document not found"
+  },
+  "error_403": {
+    "exc_type": "PermissionError", 
+    "message": "Not permitted"
+  },
+  "error_500": {
+    "exc_type": "InternalServerError",
+    "message": "Internal server error"
+  }
+}
