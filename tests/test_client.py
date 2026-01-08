@@ -157,7 +157,7 @@ class TestErrorHandling:
             status=404,
         )
 
-        with pytest.raises(FrappeAPIError, match="404.*Document not found"):
+        with pytest.raises(FrappeAPIError, match=r"404.*Document not found"):
             client.get("/api/resource/User/notfound")
 
     @responses.activate
@@ -170,7 +170,7 @@ class TestErrorHandling:
             status=403,
         )
 
-        with pytest.raises(FrappeAPIError, match="403.*Not permitted"):
+        with pytest.raises(FrappeAPIError, match=r"403.*Not permitted"):
             client.get("/api/resource/User/test")
 
     @responses.activate

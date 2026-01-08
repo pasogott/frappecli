@@ -106,7 +106,7 @@ class TestEnvironmentVariableSubstitution:
         monkeypatch.delenv("FRAPPE_STAGING_SECRET", raising=False)
 
         config = Config(test_config_path)
-        with pytest.raises(ConfigError, match="Environment variable.*not set"):
+        with pytest.raises(ConfigError, match=r"Environment variable.*not set"):
             config.get_site_config("staging")
 
 
