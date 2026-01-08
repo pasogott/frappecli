@@ -2,27 +2,31 @@
 
 A Python CLI tool for managing Frappe instances via REST API.
 
+> **⚠️ Development Status:** This project is in early development (v0.1.0-alpha).  
+> Phase 1 (Foundation) is complete. Phase 2 (CRUD) is in progress.  
+> See [STATUS.md](STATUS.md) for current implementation status.
+
 ## Overview
 
 `frappecli` provides command-line access to Frappe Framework's REST API, enabling:
 
-- **CRUD Operations**: Create, read, update, delete documents across all doctypes
-- **File Management**: Upload, download, and manage files (private by default)
-- **Reports**: Execute and export Frappe reports
-- **RPC Methods**: Call custom server methods
-- **Multi-Site**: Manage multiple Frappe sites from one config
+- **CRUD Operations**: Create, read, update, delete documents across all doctypes *(Phase 2 - In Progress)*
+- **File Management**: Upload, download, and manage files *(Phase 3 - Planned)*
+- **Reports**: Execute and export Frappe reports *(Phase 4 - Planned)*
+- **RPC Methods**: Call custom server methods *(Phase 4 - Planned)*
+- **Multi-Site**: Manage multiple Frappe sites from one config ✅
 
 ## Installation
 
 ```bash
-# Using uv (recommended)
-uv pip install frappecli
-
-# From source
+# From source (currently only option)
 git clone https://github.com/pasogott/frappecli.git
 cd frappecli
+uv sync
 uv pip install -e .
 ```
+
+**Note:** PyPI package not yet published. Will be available with v0.1.0 release.
 
 ## Quick Start
 
@@ -44,58 +48,59 @@ sites:
 default_site: production
 ```
 
-### 2. List Available Doctypes
+### 2. List Available Doctypes ✅
 
 ```bash
 frappecli doctypes
 frappecli doctypes --module "Core"
 frappecli doctypes --custom
+frappecli doctypes --json  # Output as JSON
 ```
 
-### 3. Work with Documents
+### 3. Work with Documents *(Coming in Phase 2)*
 
 ```bash
-# List documents
+# List documents (TODO)
 frappecli list "User"
 frappecli list "ToDo" --filters '{"status": "Open"}' --limit 10
 
-# Get a document
+# Get a document (TODO)
 frappecli get "User" "administrator@example.com"
 
-# Create a document
+# Create a document (TODO)
 frappecli create "ToDo" --data '{"description": "Review PR", "status": "Open"}'
 
-# Update a document
+# Update a document (TODO)
 frappecli update "ToDo" "TODO-001" --data '{"status": "Closed"}'
 
-# Delete a document
+# Delete a document (TODO)
 frappecli delete "ToDo" "TODO-001"
 ```
 
-### 4. File Management
+### 4. File Management *(Coming in Phase 3)*
 
 ```bash
-# Upload file (private by default)
+# Upload file (private by default) (TODO)
 frappecli upload document.pdf
 
-# Upload and attach to a document
+# Upload and attach to a document (TODO)
 frappecli upload report.pdf --attach "Project" "PROJ-001"
 
-# Upload public file
+# Upload public file (TODO)
 frappecli upload logo.png --public --folder "Assets"
 
-# Download file
+# Download file (TODO)
 frappecli download /files/document.pdf -o local.pdf
 
-# List files
+# List files (TODO)
 frappecli files list --folder "Home"
 frappecli files search "invoice"
 
-# Bulk upload
+# Bulk upload (TODO)
 frappecli bulk-upload ./documents/*.pdf --folder "Reports"
 ```
 
-### 5. Execute Reports
+### 5. Execute Reports *(Coming in Phase 4)*
 
 ```bash
 # List available reports
